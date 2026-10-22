@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AzubiStart – Prototyp</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFC933">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AzubiStart">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{
+  --paper:#F5F6F2; --card:#FFFFFF; --ink:#1B2A41; --muted:#5B6878; --line:#D9DED8;
+  --signal:#FFC933; --on-signal:#1B2A41; --teal:#0E7C7B; --ok:#1B7F4B; --bad:#B3321F; --scrim:rgba(27,42,65,.55);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#101822; --card:#192433; --ink:#EEF1F4; --muted:#A3AEBB; --line:#2B3A4D;
+    --teal:#4CC3C1; --ok:#5BD08F; --bad:#FF8F7D; --scrim:rgba(0,0,0,.65); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101822; --card:#192433; --ink:#EEF1F4; --muted:#A3AEBB; --line:#2B3A4D;
+  --teal:#4CC3C1; --ok:#5BD08F; --bad:#FF8F7D; --scrim:rgba(0,0,0,.65); color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+#app{max-width:420px;margin:0 auto;padding:20px 18px 40px}
+h1{font-size:1.9rem;line-height:1.1;font-weight:800;margin:0}
+h2{font-size:1.15rem;font-weight:800;margin:0 0 8px}
+p{margin:0}
+.muted{color:var(--muted);font-size:.95rem}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.chip{background:var(--signal);color:var(--on-signal);font-weight:800;border-radius:99px;padding:5px 12px;font-size:.9rem;white-space:nowrap}
+.bar{height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:99px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.week{display:flex;justify-content:space-between;margin-top:10px}
+.day{text-align:center;font-size:.8rem;color:var(--muted)}
+.day span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);margin:0 auto 3px;font-size:1rem}
+.day.done span{background:var(--signal);border-color:var(--signal)}
+.day.pop span{animation:pop .5s}
+.badges{display:flex;gap:10px;margin-top:10px}
+.badge{flex:1;text-align:center;font-size:.78rem;line-height:1.2}
+.badge b{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;margin:0 auto 5px;font-size:1.5rem;background:var(--signal)}
+.badge.off{color:var(--muted)} .badge.off b{background:var(--line);filter:grayscale(1);opacity:.6}
+.push{background:var(--signal);color:var(--on-signal);border-radius:18px;padding:18px;margin-bottom:12px}
+.push .tag{font-size:.85rem;font-weight:600;margin-bottom:6px}
+.push h2{font-size:1.4rem;line-height:1.15;margin-bottom:14px}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:14px 18px;cursor:pointer;background:var(--ink);color:var(--paper);width:100%;font-size:1rem}
+.btn.ghost{background:none;color:var(--muted);font-weight:600;margin-top:4px}
+.push .btn{background:#1B2A41;color:#fff;width:auto}
+.btn:focus-visible,.opt:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.lane.soon{border-style:dashed}
+.tagline{display:inline-block;font-size:.8rem;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 9px;margin-top:8px}
+.q{font-size:1.4rem;font-weight:800;line-height:1.2;margin:14px 0 16px}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-size:1rem;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--card))}
+.opt.wrong{border-color:var(--bad);animation:shake .35s}
+.fb{min-height:48px;margin:6px 0 14px;font-weight:600}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.back{background:none;border:0;color:var(--muted);font:inherit;cursor:pointer;padding:0}
+.note{margin-top:26px;font-size:.8rem;color:var(--muted)}
+/* Overlays */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fade .25s}
+.sheet{width:100%;max-width:420px;background:var(--card);border-radius:24px 24px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));animation:up .35s cubic-bezier(.2,.8,.2,1);text-align:center}
+.sheet .grip{width:40px;height:5px;border-radius:99px;background:var(--line);margin:-10px auto 16px}
+.sheet .emoji{font-size:3rem;line-height:1}
+.sheet h2{font-size:1.5rem;margin:10px 0 6px}
+.facts{display:flex;gap:8px;margin:16px 0}
+.facts div{flex:1;background:var(--paper);border-radius:12px;padding:10px 4px;font-size:.85rem;color:var(--muted)}
+.facts b{display:block;font-size:1.2rem;color:var(--ink)}
+.big{font-size:3.6rem;font-weight:800;line-height:1;margin:8px 0;animation:pop .6s}
+.banner{position:fixed;left:0;right:0;top:0;z-index:30;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 0;pointer-events:none}
+.banner button{pointer-events:auto;display:block;width:100%;max-width:396px;margin:0 auto;text-align:left;font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.18);cursor:pointer;animation:drop .5s cubic-bezier(.2,.8,.2,1)}
+.banner small{display:block;color:var(--muted)}
+.cf{position:fixed;top:-12px;width:9px;height:14px;z-index:40;pointer-events:none;animation:fall 2.2s ease-in forwards}
+@keyframes fade{from{opacity:0}} @keyframes up{from{transform:translateY(100%)}} @keyframes drop{from{transform:translateY(-130%)}}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.9}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}.cf{display:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<script>
+var QUIZ = [
+  {q:"Was ist eine Anfrage im Einkauf?", o:["Ein Lieferant wird um ein Angebot gebeten.","Eine Bestellung wird storniert.","Eine Rechnung wird bezahlt."], a:0, e:"Mit der Anfrage holt der Einkauf Angebote ein, bevor bestellt wird."},
+  {q:"Was steht auf einem Lieferschein?", o:["Wie hoch der Gewinn ist.","Welche Ware in welcher Menge geliefert wird.","Wer im Betrieb Urlaub hat."], a:1, e:"Beim Wareneingang prüfst du die Lieferung gegen den Lieferschein."},
+  {q:"Was bedeutet „Skonto“?", o:["Eine Gebühr für späte Zahlung.","Versandkosten für die Lieferung.","Ein Preisnachlass bei schneller Zahlung."], a:2, e:"Wer innerhalb der Frist zahlt, spart zum Beispiel 2 Prozent."}
+];
+var LEVELS = ["Frischling","Durchstarter","Profi-Azubi","Abteilungs-Kenner"], XP = 150;
+var S = {points:120, shown:120, streak:3, todayDone:false, perfect:false, step:0, right:0, locked:false};
+var app = document.getElementById("app"), layer = document.getElementById("layer"), banner = null;
+var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function lvl(p){return Math.min(Math.floor(p/XP), LEVELS.length-1);}
+function $(id){return document.getElementById(id);}
+
+function home(){
+  var l = lvl(S.shown), pct = (S.shown % XP) / XP * 100;
+  var days = ["Mo","Di","Mi","Do","Fr","Sa","So"].map(function(d,i){
+    var done = i < S.streak, pop = S.todayDone && i === S.streak-1;
+    return '<div class="day'+(done?' done':'')+(pop?' pop':'')+'"><span>'+(done?'🔥':'')+'</span>'+d+'</div>';
+  }).join("");
+  app.innerHTML =
+    '<div class="row"><div><h1>Hi Mia</h1><p class="muted">Dein Start in die Ausbildung.</p></div><span class="chip">Level '+(l+1)+'</span></div>' +
+    '<div class="card" style="margin-top:16px"><div class="row"><b>'+LEVELS[l]+'</b><span class="muted">'+S.shown+' Punkte</span></div>' +
+    '<div class="bar"><i id="xp" style="width:'+pct+'%"></i></div><p class="muted">Noch '+(XP - S.shown % XP)+' Punkte bis Level '+(l+2)+'</p></div>' +
+    (S.todayDone ? '' :
+    '<div class="push"><div class="tag">Azubi Start App · jetzt</div><h2>In drei Tagen startest du im Einkauf. Ein kurzes Learning gefällig?</h2><button class="btn" id="open">Learning ansehen</button></div>') +
+    '<div class="card"><div class="row"><b>'+S.streak+' Tage in Folge</b><span class="muted">'+(S.todayDone?'Heute geschafft':'Heute noch offen')+'</span></div><div class="week">'+days+'</div></div>' +
+    '<div class="card"><b>Deine Abzeichen</b><div class="badges">' +
+    badge("🌱","Erster Tag",true)+badge("🔥","3 Tage Serie",true)+badge("🛒","Einkauf-Profi",S.perfect)+badge("💶","Gehaltsprofi",false)+'</div></div>' +
+    '<div class="card lane soon"><h2>Privat alles im Griff</h2><p class="muted">Der Monat ist vorbei. Knack in zwei Minuten die Gehaltsabrechnung und hol dir 30 Punkte!</p><span class="tagline">Geplant</span></div>' +
+    '<p class="note">Prototyp mit Beispielinhalten. Die Fragen sind Platzhalter, die Betriebe später selbst festlegen.</p>';
+  if($("open")) $("open").onclick = preview;
+  if(S.shown !== S.points){ S.shown = S.points; requestAnimationFrame(function(){requestAnimationFrame(function(){
+    var l2 = lvl(S.points); $("xp").style.width = (S.points % XP)/XP*100 + "%"; });}); }
+}
+function badge(e,t,on){return '<div class="badge'+(on?'':' off')+'"><b>'+e+'</b>'+t+'</div>';}
+
+function sheet(html){
+  layer.innerHTML = '<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true"><div class="grip"></div>'+html+'</div></div>';
+  $("scrim").onclick = function(e){ if(e.target.id === "scrim") close(); };
+}
+function close(){ layer.innerHTML = ""; }
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") close(); });
+
+function notify(){
+  if(S.todayDone) return;
+  banner = document.createElement("div"); banner.className = "banner";
+  banner.innerHTML = '<button><small>Azubi Start App · jetzt</small><b>🛒 In drei Tagen startest du im Einkauf.</b><small>Ein kurzes Learning gefällig?</small></button>';
+  document.body.appendChild(banner);
+  banner.querySelector("button").onclick = function(){ banner.remove(); preview(); };
+  setTimeout(function(){ if(banner) banner.remove(); }, 6000);
+}
+
+function preview(){
+  sheet('<div class="emoji">🛒</div><h2>Einkauf in fünf Minuten</h2><p class="muted">Drei kurze Fragen zu den Grundbegriffen deiner nächsten Abteilung.</p>' +
+    '<div class="facts"><div><b>5 Min</b>Dauer</div><div><b>3</b>Fragen</div><div><b>+35</b>Punkte möglich</div></div>' +
+    '<button class="btn" id="start">Los geht’s</button><button class="btn ghost" id="later">Später</button>');
+  $("start").onclick = function(){ close(); S.step = 0; S.right = 0; quiz(); };
+  $("later").onclick = close;
+}
+
+function quiz(){
+  var s = QUIZ[S.step]; S.locked = false;
+  var opts = s.o.map(function(t,i){return '<button class="opt" data-i="'+i+'">'+t+'</button>';}).join("");
+  app.innerHTML =
+    '<button class="back" id="back">‹ Abbrechen</button>' +
+    '<div class="bar"><i style="width:'+(S.step/QUIZ.length*100)+'%"></i></div><p class="muted">Frage '+(S.step+1)+' von '+QUIZ.length+'</p>' +
+    '<div class="q">'+s.q+'</div>'+opts+'<div class="fb" id="fb" aria-live="polite"></div><button class="btn" id="next" hidden></button>';
+  $("back").onclick = home;
+  var btns = app.querySelectorAll(".opt");
+  btns.forEach(function(b){ b.onclick = function(){
+    if(S.locked) return; S.locked = true;
+    var i = +b.dataset.i, fb = $("fb");
+    btns[s.a].classList.add("right");
+    if(i === s.a){ S.right++; fb.className = "fb ok"; fb.textContent = "Richtig, +10 Punkte. " + s.e; }
+    else { b.classList.add("wrong"); fb.className = "fb bad"; fb.textContent = "Nicht ganz. " + s.e; }
+    var n = $("next"); n.hidden = false;
+    n.textContent = S.step < QUIZ.length-1 ? "Weiter" : "Ergebnis ansehen";
+    n.onclick = function(){ S.step++; if(S.step < QUIZ.length) quiz(); else finish(); };
+  };});
+}
+
+function finish(){
+  var all = S.right === QUIZ.length, gained = S.right*10 + (all ? 5 : 0), before = lvl(S.points);
+  S.points += gained; S.perfect = S.perfect || all;
+  if(!S.todayDone){ S.todayDone = true; S.streak++; }
+  var up = lvl(S.points) > before;
+  home();
+  sheet((up ? '<div class="emoji">🏆</div><h2>Level '+(lvl(S.points)+1)+': '+LEVELS[lvl(S.points)]+'</h2>' : '<div class="emoji">'+(all?'🎉':'👍')+'</div><h2>'+(all?'Alles richtig!':S.right+' von '+QUIZ.length+' richtig')+'</h2>') +
+    '<div class="big">+'+gained+'</div><p class="muted">Punkte für deinen Start im Einkauf'+(all?' (inklusive 5 Bonuspunkte)':'')+'</p>' +
+    '<div class="facts"><div><b>'+S.streak+' 🔥</b>Tage in Folge</div><div><b>'+S.points+'</b>Punkte gesamt</div>'+(all?'<div><b>🛒</b>Neues Abzeichen</div>':'')+'</div>' +
+    '<button class="btn" id="done">Weiter</button>');
+  $("done").onclick = close;
+  if(gained > 0) confetti();
+}
+
+function confetti(){
+  if(reduce) return;
+  var c = ["#FFC933","#0E7C7B","#FF6B4A","#4C8DFF","#7BD88F"];
+  for(var i=0;i<36;i++){
+    var d = document.createElement("i"); d.className = "cf";
+    d.style.left = Math.random()*100+"vw"; d.style.background = c[i%c.length];
+    d.style.animationDelay = Math.random()*.5+"s"; d.style.animationDuration = 1.6+Math.random()*1.4+"s";
+    document.body.appendChild(d); setTimeout(function(el){el.remove();}, 3600, d);
+  }
+}
+
+home();
+setTimeout(notify, 900);
+if("serviceWorker" in navigator){ addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
+</script>
+</body>
+</html>
